@@ -1,0 +1,16 @@
+{
+    "extends": ["config:recommended"],
+    "automerge": true,
+    "automergeType": "branch",
+    "labels": ["renovate"],
+    "timezone": "Asia/Shanghai",
+    "ignoreTests": true,
+    "packageRules": [
+        {
+            "matchUpdateTypes": ["major"],
+            "automergeType": "pr",
+            "automerge": false
+        }
+    ],
+    "configMigration": true
+}

@@ -1,0 +1,17 @@
+name: Substitute File Hashes
+description: Replaces ${{ hashFile('filepath') }} with actual file hashes in files matching a glob pattern
+author: Andrei Izotov
+inputs:
+  files:
+    required: true
+    description: Glob pattern for files to process (e.g., '**/*.yaml')
+  algorithm:
+    required: false
+    default: sha256
+    description: Hashing algorithm from Node.js crypto API (e.g., sha256, md5)
+runs:
+  using: node24
+  main: dist/index.cjs
+branding:
+  icon: hash
+  color: gray-dark
