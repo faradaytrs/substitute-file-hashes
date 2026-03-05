@@ -1,5 +1,5 @@
 name: Substitute File Hashes
-description: Replaces ${{ hashFile('filepath') }} with actual file hashes in files matching a glob pattern
+description: Replaces file hash placeholders with actual file hashes in files matching a glob pattern
 author: Andrei Izotov
 inputs:
   files:
