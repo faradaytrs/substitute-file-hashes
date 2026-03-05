@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { glob } from 'node:fs/promises';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { resolve } from 'node:path';
+import { dirname, isAbsolute, relative, resolve } from 'node:path';
 
 export async function processFiles(
   filesPattern: string,
@@ -14,6 +14,7 @@ export async function processFiles(
 
   const hashRegex = /\$\{\{\s*hashFile\(['"]([^'"]+)['"]\)\s*\}\}/g;
   const hashCache = new Map<string, Promise<string>>();
+  const workspaceRoot = resolve(process.cwd());
 
   let processedCount = 0;
   let modifiedCount = 0;
@@ -45,7 +46,15 @@ export async function processFiles(
     let hasModifications = false;
     const newContent = await replaceAsync(content, hashRegex, async (match, targetPath) => {
       try {
-        const targetAbsolutePath = resolve(targetPath);
+        const targetAbsolutePath = resolveHashFilePath(targetPath, absolutePath, workspaceRoot);
+        if (!isPathInsideWorkspace(targetAbsolutePath, workspaceRoot)) {
+          const outsideWorkspaceMessage = `[${filePath}] Resolved path for hashFile('${targetPath}') is outside workspace: ${targetAbsolutePath}`;
+          if (throwIfFileNotExists) {
+            throw new Error(outsideWorkspaceMessage);
+          }
+          core.warning(outsideWorkspaceMessage);
+          return match;
+        }
         const hash = await getOrCreateHash(targetAbsolutePath);
         core.info(`[${filePath}] Replaced ${match} with ${hash}`);
         hasModifications = true;
@@ -71,6 +80,19 @@ export async function processFiles(
 
   core.info(`Processed ${processedCount} files, modified ${modifiedCount} files.`);
   return { processedCount, modifiedCount };
+}
+
+export function resolveHashFilePath(hashArg: string, currentFilePath: string, workspaceRoot: string): string {
+  const isRelativeToCurrentFile = hashArg.startsWith('./') || hashArg.startsWith('../');
+  if (isRelativeToCurrentFile) {
+    return resolve(dirname(currentFilePath), hashArg);
+  }
+  return resolve(workspaceRoot, hashArg);
+}
+
+function isPathInsideWorkspace(targetPath: string, workspaceRoot: string): boolean {
+  const pathDifference = relative(workspaceRoot, targetPath);
+  return pathDifference === '' || (!pathDifference.startsWith('..') && !isAbsolute(pathDifference));
 }
 
 async function run(): Promise<void> {

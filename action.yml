@@ -1,5 +1,5 @@
 name: Substitute File Hashes
-description: Replaces hashFile placeholders with actual file hashes in files matching a glob pattern
+description: Replaces hashFile placeholders with file hashes in matched files. ./ and ../ paths resolve from current file; other paths from workspace root.
 author: Andrei Izotov
 inputs:
   files:
@@ -12,7 +12,7 @@ inputs:
   throwIfFileNotExists:
     required: false
     default: "true"
-    description: Fail action when hashFile points to a missing file
+    description: Fail action when resolved hashFile path is missing or outside workspace
 runs:
   using: node24
   main: dist/index.cjs
