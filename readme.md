@@ -45,4 +45,11 @@ spec:
 
     # (Optional) Hashing algorithm from Node.js crypto API. Default is sha256.
     algorithm: sha256
+
+    # (Optional) Fail if hashFile points to a missing file. Default is true.
+    throwIfFileNotExists: true
 ```
+
+When `throwIfFileNotExists` is:
+- `true` (default): action fails if any referenced file does not exist.
+- `false`: action logs a warning and leaves the original `hashFile(...)` expression unchanged.

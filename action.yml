@@ -1,5 +1,5 @@
 name: Substitute File Hashes
-description: Replaces ${{ hashFile('filepath') }} with actual file hashes in files matching a glob pattern
+description: Replaces hashFile placeholders with actual file hashes in files matching a glob pattern
 author: Andrei Izotov
 inputs:
   files:
@@ -9,9 +9,13 @@ inputs:
     required: false
     default: sha256
     description: Hashing algorithm from Node.js crypto API (e.g., sha256, md5)
+  throwIfFileNotExists:
+    required: false
+    default: "true"
+    description: Fail action when hashFile points to a missing file
 runs:
   using: node24
   main: dist/index.cjs
 branding:
   icon: hash
-  color: gray-dark
+  color: white

@@ -4,7 +4,11 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 
-export async function processFiles(filesPattern: string, algorithm: string = 'sha256'): Promise<{ processedCount: number, modifiedCount: number }> {
+export async function processFiles(
+  filesPattern: string,
+  algorithm: string = 'sha256',
+  throwIfFileNotExists: boolean = true
+): Promise<{ processedCount: number, modifiedCount: number }> {
   core.info(`Searching for files matching: ${filesPattern}`);
   core.info(`Using hashing algorithm: ${algorithm}`);
 
@@ -28,8 +32,15 @@ export async function processFiles(filesPattern: string, algorithm: string = 'sh
         hasModifications = true;
         return hash;
       } catch (error) {
-        core.warning(`[${filePath}] Failed to hash file '${targetPath}': ${error instanceof Error ? error.message : String(error)}`);
-        return match;
+        if ((error as NodeJS.ErrnoException)?.code === 'ENOENT') {
+          const missingFileMessage = `[${filePath}] File not found for hashFile('${targetPath}')`;
+          if (throwIfFileNotExists) {
+            throw new Error(missingFileMessage);
+          }
+          core.warning(missingFileMessage);
+          return match;
+        }
+        throw error;
       }
     });
 
@@ -47,8 +58,9 @@ async function run(): Promise<void> {
   try {
     const filesPattern = core.getInput('files', { required: true });
     const algorithm = core.getInput('algorithm') || 'sha256';
+    const throwIfFileNotExists = core.getBooleanInput('throwIfFileNotExists');
 
-    await processFiles(filesPattern, algorithm);
+    await processFiles(filesPattern, algorithm, throwIfFileNotExists);
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }

@@ -51,7 +51,7 @@ metadata:
     assert.ok(!updatedContent.includes('hashFile'), 'The hashFile syntax should be removed');
   });
 
-  it('should not modify file if target file does not exist', async () => {
+  it('should not modify file if target file does not exist and throwIfFileNotExists is false', async () => {
     const deploymentFilePath = join(testDir, 'deployment-missing.yaml');
     const deploymentContent = `
 apiVersion: apps/v1
@@ -62,12 +62,30 @@ metadata:
 `;
     await writeFile(deploymentFilePath, deploymentContent, 'utf8');
 
-    const result = await processFiles(join(testDir, 'deployment-missing.yaml'), 'sha256');
+    const result = await processFiles(join(testDir, 'deployment-missing.yaml'), 'sha256', false);
 
     assert.strictEqual(result.processedCount, 1, 'Should process 1 file');
     assert.strictEqual(result.modifiedCount, 0, 'Should modify 0 files');
 
     const updatedContent = await readFile(deploymentFilePath, 'utf8');
     assert.strictEqual(updatedContent, deploymentContent, 'File content should remain unchanged');
+  });
+
+  it('should fail if target file does not exist and throwIfFileNotExists is true', async () => {
+    const missingTargetPath = join(testDir, 'missing-strict.json');
+    const deploymentFilePath = join(testDir, 'deployment-strict.yaml');
+    const deploymentContent = `
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    config-hash: \${{ hashFile('${missingTargetPath}') }}
+`;
+    await writeFile(deploymentFilePath, deploymentContent, 'utf8');
+
+    await assert.rejects(
+      () => processFiles(join(testDir, 'deployment-strict.yaml'), 'sha256', true),
+      /File not found for hashFile/
+    );
   });
 });
