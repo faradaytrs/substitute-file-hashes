@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 
-import { processFiles } from './index.ts';
+import { processFiles } from './index.js';
 
 describe('substitute-file-hashes', () => {
   let testDir: string;

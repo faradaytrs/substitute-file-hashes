@@ -12,9 +12,9 @@
     "@actions/core": "3.0.0"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
     "@types/node": "24.10.9",
-    "esbuild": "0.27.2"
+    "esbuild": "0.27.2",
+    "typescript": "6.0.1-rc"
   },
   "keywords": [],
   "author": "",
